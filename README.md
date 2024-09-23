@@ -14,6 +14,10 @@ When checking your requests, Cloudflare does not only check the Cookie. It also 
 
 Cookies with cf in the name belong to Cloudflare. You can find out what these cookies do and how long they are valid by **[Clicking Here](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/)**.
 
+## Sponsor
+
+[![Capsolver](data/capsolver.png)](https://www.capsolver.com/?utm_source=github&utm_medium=repo&utm_campaign=scraping&utm_term=cf-clearance-scraper)
+
 ## Installation
 
 Installation with Docker is recommended.
