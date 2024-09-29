@@ -176,4 +176,4 @@ You can give the variable process.env.timeOut a value in milliseconds. The defau
 ## Disclaimer of Liability
 This repository was created purely for testing and training purposes. The user is responsible for any prohibited liability that may arise from its use.
 The library is not intended to harm any site or company. The user is responsible for any damage that may arise. 
-Users of this repository are deemed to have accepted this disclaimer.
+Users of this repository are deemed to have accepted this disclaimer. 
