@@ -1,22 +1,14 @@
 # CF Clearance Scraper
 
-[Disclosure]
-- Cloudflare no longer offers the Turnstile token with input on some sites. For this reason, some sites may have problems in getting Turnstile token.
-- If you still see waf when you send a request with the received header information, there is probably tls fingerprint protection on the site. You can send your requests with such libraries. https://www.npmjs.com/package/cycletls
-- If you are having problems, please delete the local image completely and install the latest image
+This library was created for testing and training purposes to retrieve the page source of websites, create Cloudflare Turnstile tokens and create Cloudflare WAF sessions.
 
-
-[UPDATE] You can now get a Turnstile Captcha token. It will return it in 5 seconds on average.
-
-This package provides an api that returns cookies (cf-clearance) that you can request on a website protected by Cloudflare WAF (corporate or normal) without being blocked by WAF.
-
-When checking your requests, Cloudflare does not only check the Cookie. It also checks IP and User Agent. For this reason, you should send your requests by setting User Agent, IP and Cookie. If you add the headers object in the response directly to the headers of your request, your request will be successful. Tested on sites protected with Cloudflare enterprise plan.
+Cloudflare protection not only checks cookies in the request. It also checks variables in the header. For this reason, it is recommended to use it with the sample code in this readme file.
 
 Cookies with cf in the name belong to Cloudflare. You can find out what these cookies do and how long they are valid by **[Clicking Here](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/)**.
 
 ## Sponsor
 
-[![Capsolver](data/capsolver.png)](https://www.capsolver.com/?utm_source=github&utm_medium=repo&utm_campaign=scraping&utm_term=cf-clearance-scraper)
+[![Capsolver](src/data/capsolver.png)](https://www.capsolver.com/?utm_source=github&utm_medium=repo&utm_campaign=scraping&utm_term=cf-clearance-scraper)
 
 ## Installation
 
@@ -29,7 +21,7 @@ Installation with Docker is recommended.
 docker run -d -p 3000:3000 \
 -e PORT=3000 \
 -e browserLimit=20 \
--e timeOut=30000 \
+-e timeOut=60000 \
 zfcsoftware/cf-clearance-scraper:latest
 
 ```
@@ -42,138 +34,146 @@ npm install
 npm run start
 ```
 
-## Usage
+## Create Cloudflare WAF Session
 
-It is not recommended to change the user agent information. You will be returned the User Agent information used when scraping.
+By creating a session as in the example, you can send multiple requests to the same site without being blocked. Since sites may have TLS protection, it is recommended to send requests with the library in the example.
 
 ```js
-    fetch('http://localhost:3000/cf-clearance-scraper', {
+const initCycleTLS = require('cycletls');
+async function test() {
+    const session = await fetch('http://localhost:3000/cf-clearance-scraper', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            // authToken: 'test', // Not mandatory. Checked if the env variable is set.
-            url: 'https://nopecha.com/demo/cloudflare', // Link to engrave
-            mode:"waf", // gets waf or captcha values
-            // agent: null,
-            // defaultCookies: [],
-            // Proxy information (not mandatory)
-            // proxy: {
-            //     host: '1.1.1.1',
-            //     port: '1111',
-            //     username: 'test',
-            //     password: 'test'
+            url: 'https://nopecha.com/demo/cloudflare',
+            mode: "waf-session",
+            // proxy:{
+            //     host: '127.0.0.1',
+            //     port: 3000,
+            //     username: 'username',
+            //     password: 'password'
             // }
         })
-    }).then(res => res.json()).then(console.log).catch(console.error)
-```
+    }).then(res => res.json()).catch(err => { console.error(err); return null });
 
-**Variables**
+    if (!session || session.code != 200) return console.error(session);
 
-*Request Body*
-
-**authToken** If set to env, it is checked to keep the API secure. If it is not set to private, it does not need to be sent.
-
-**url** Refers to the URL address to be scraped. You must send the exact link where you are stuck in WAF. If WAF does not exit, if the site uses Cloudflare, it will still successfully return the relevant Cookie.
-
-**agent** Allows you to change your User Agent information. It is not recommended to change it. Using the default is safe and guaranteed. The default User Agent information is returned at the end of the request.
-
-**proxy** Host, Port, Username and Password information is sent by the Proxy you send. Sending is not mandatory.
-
-**defaultCookies** Puppeteer allows you to use your pre-existing cookies. If you send the cookies you received with page.cookies, it starts the process with them.
-
-**mode** takes waf or captcha values. If waf is sent, it gets and returns the waf cookies, you can send a request directly with the returned header. If captcha is set, the turnstile on the page decodes the captcha and returns the token.
-
-*ENV*
-
-**browserLimit** Allows you to set the maximum number of browsers that can be opened at the same time. The default is 20. If exceeded, api will return error code 429.
-
-**timeOut** Sets the maximum time a transaction will take. The default is 30000. Must be given in milliseconds.
-
-**authToken** Not mandatory. If not set, all requests are allowed. If set, the request must be sent with the authToken variable in the request body.
-
-**PORT** The default is 3000. It is not recommended to change it.
-
-
-Sample WAF Response
-
-```js
-  {
-    "code": 200,
-    "cookies": [
-        {
-            "name": "cf_clearance",
-            "value": "NOA3tAWyodzOAb8X3Ae3R5UFTIvvGflfnQaboTKJwZ8-1716899254-1.0.1.1-x18bw9OFEDYSLDNSXZY3E9huAowzZXX0qhd3n7_PnwsqtVSJi6JII7DZ_sBXVpS1drLeAOhaUIbMDYq4vbkBnA",
-            "domain": ".nopecha.com",
-            "path": "/",
-            "expires": 1748435257.058819,
-            "size": 161,
-            "httpOnly": true,
-            "secure": true,
-            "session": false,
-            "sameSite": "None",
-            "priority": "Medium",
-            "sameParty": false,
-            "sourceScheme": "Secure",
-            "partitionKey": "https://nopecha.com"
+    const cycleTLS = await initCycleTLS();
+    const response = await cycleTLS('https://nopecha.com/demo/cloudflare', {
+        body: '',
+        ja3: '772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,23-27-65037-43-51-45-16-11-13-17513-5-18-65281-0-10-35,25497-29-23-24,0', // https://scrapfly.io/web-scraping-tools/ja3-fingerprint
+        userAgent: session.headers["user-agent"],
+        // proxy: 'http://username:password@hostname.com:443',
+        headers: {
+            ...session.headers,
+            cookie: session.cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ')
         }
-    ],
-    "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "proxy": {},
-    "url": "https://nopecha.com/demo/cloudflare",
-    "headers": {
-        "accept-language": "en-US,en;q=0.9",
-        "upgrade-insecure-requests": "1",
-        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "sec-ch-ua": "\"Not-A.Brand\";v=\"99\", \"Chromium\";v=\"124\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Linux\"",
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "host": "nopecha.com",
-        "sec-ch-ua-arch": "\"x86\"",
-        "sec-ch-ua-bitness": "\"64\"",
-        "sec-ch-ua-full-version": "\"124.0.6367.201\"",
-        "sec-ch-ua-full-version-list": "\"Not-A.Brand\";v=\"99.0.0.0\", \"Chromium\";v=\"124.0.6367.201\"",
-        "sec-ch-ua-model": "\"\"",
-        "sec-ch-ua-platform-version": "\"6.5.0\"",
-        "content-type": "application/x-www-form-urlencoded",
-        "origin": "https://nopecha.com",
-        "referer": "https://nopecha.com/demo/cloudflare?__cf_chl_tk=zBTFi8_2iwW24b49NbcAZtppcSPfJhNgEqt31K4DpbM-1716899254-0.0.1.1-1365",
-        "cookie": "cf_clearance=NOA3tAWyodzOAb8X3Ae3R5UFTIvvGflfnQaboTKJwZ8-1716899254-1.0.1.1-x18bw9OFEDYSLDNSXZY3E9huAowzZXX0qhd3n7_PnwsqtVSJi6JII7DZ_sBXVpS1drLeAOhaUIbMDYq4vbkBnA"
-    }
+    }, 'get');
+
+    console.log(response.status);
+    cycleTLS.exit().catch(err => { });
 }
+test()
 ```
 
-Sample Captcha Response
+## Create Turnstile Token with Little Resource Consumption
+
+This endpoint allows you to generate tokens for a Cloudflare Turnstile Captcha. It blocks the request that fetches the page resource and instead makes the page resource a simple Turnstile render page. This allows you to generate tokens without having to load any additional css or js files. 
+
+However, in this method, the siteKey variable must be sent to Turnstile along with the site to create the token. If this does not work, you can examine the token generation system by loading the full page resource described in the next section.
 
 ```js
-{
-    "code": 200,
-    "cookies": [],
-    "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "proxy": {},
-    "url": "https://nopecha.com/demo/cloudflare",
-    "headers": {
-        "accept-language": "en-US,en;q=0.9",
-        "upgrade-insecure-requests": "1",
-        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "sec-ch-ua": "\"Not-A.Brand\";v=\"99\", \"Chromium\";v=\"124\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Linux\"",
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "host": "nopecha.com"
+fetch('http://localhost:3000/cf-clearance-scraper', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
     },
-    "turnstile": {
-        "token": "0.arxps90V2kIu__GmCYA_vnGaDrxxlpLLTxSapYw1HWAwePtX0gUiuI6x-04vg-h2GO0UTGfaBAFFlEvaKK2N-I8iFnWdXuMiwNDxdVI9HfOViAHdQyXo0SPXX_JjyKFzPMZC1ITEPrrgamRreQJYcqDFziyHguLgNAG_gIxGHyH14sOH9C-4s5MP0PGyxOZ2lIu-HTfSCWNPKsDp2XXU86fg8dpNsEAr-iZKvfeIDCFiDHJMAxCIbUHSECmuI6OvNbnThgrLBmXPoKeeXaFSsca2uAuifgREIOqkYiu01Z1taqkbHi5XPOkzGDPV9j28gfgA4Kw9toDw1LRLOCXMlA3UlLDGdCWczzB1heL2k9TjktFOY_IuXatphuDb25BEtt8IkX6f5nD8510hSiW1AaT19tgg8lJX9NOFEbRzpzp5VM5wzwhuNXuVWz0rWDDR.T1e1PogmtR4GZuk3nFmsXw.c6e5f9f47a81c53accd6ae5ad1761be39d3bcc566304fef659d96a56c329e719"
-    }
-}
+    body: JSON.stringify({
+        url: 'https://turnstile.zeroclover.io/',
+        siteKey: "0x4AAAAAAAEwzhD6pyKkgXC0",
+        mode: "turnstile-min",
+        // proxy:{
+        //     host: '127.0.0.1',
+        //     port: 3000,
+        //     username: 'username',
+        //     password: 'password'
+        // }
+    })
+})
+    .then(res => res.json())
+    .then(console.log)
+    .catch(console.log);
 ```
 
-## Support us
+## Creating Turnstile Token with Full Page Load
 
-Please star the repo to help this open source project get updates. Your star will help us a lot.
+This example request goes to the page at the given url address with a real browser, resolves the Turnstile and returns you the token.
+
+```js
+fetch('http://localhost:3000/cf-clearance-scraper', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        url: 'https://turnstile.zeroclover.io/',
+        mode: "turnstile-max",
+        // proxy:{
+        //     host: '127.0.0.1',
+        //     port: 3000,
+        //     username: 'username',
+        //     password: 'password'
+        // }
+    })
+})
+    .then(res => res.json())
+    .then(console.log)
+    .catch(console.log);
+```
+
+## Getting Page Source from a Site Protected with Cloudflare WAF
+
+With this request you can scrape the page source of a website protected with CF WAF.
+
+```js
+fetch('http://localhost:3000/cf-clearance-scraper', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        url: 'https://nopecha.com/demo/cloudflare',
+        mode: "source"
+        // proxy:{
+        //     host: '127.0.0.1',
+        //     port: 3000,
+        //     username: 'username',
+        //     password: 'password'
+        // }
+    })
+})
+    .then(res => res.json())
+    .then(console.log)
+    .catch(console.log);
+```
+
+## Quick Questions and Answers
+
+### Does It Open A New Browser On Every Request?
+No, a new context is started with each request and closed when the job is finished. Processes are executed with isolated contexts through a single browser.
+
+### How Do I Limit the Browser Context to Open?
+You can do this by changing the process.env.browserLimit value. The default is 20
+
+### How Do I Add Authentication to Api?
+You can add authorisation by changing the process.env.authToken variable. If this variable is added, it returns 401 if the authToken variable in the request body is not equal to the yoken you specify.
+
+### How Do I Set The Timeout Time?
+You can give the variable process.env.timeOut a value in milliseconds. The default is 60000.
 
 ## Disclaimer of Liability
-
-This library has been created for testing and educational purposes. The user is responsible for any problems that may arise. You can start a discussion for any problems you are experiencing, but you should avoid messages that will disturb or force the developer. This project is completely open source. Please support it with a star rating.
+This repository was created purely for testing and training purposes. The user is responsible for any prohibited liability that may arise from its use.
+The library is not intended to harm any site or company. The user is responsible for any damage that may arise. 
+Users of this repository are deemed to have accepted this disclaimer.
