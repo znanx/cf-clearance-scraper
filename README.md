@@ -16,15 +16,20 @@ Installation with Docker is recommended.
 
 **Docker**
 
-```bash
+Please make sure you have installed the latest image. If you get an error, try downloading the latest version by going to Docker Hub.
 
+```bash
+sudo docker rmi zfcsoftware/cf-clearance-scraper:latest --force
+```
+
+```bash
 docker run -d -p 3000:3000 \
 -e PORT=3000 \
 -e browserLimit=20 \
 -e timeOut=60000 \
 zfcsoftware/cf-clearance-scraper:latest
-
 ```
+
 **Github**
 
 ```bash
