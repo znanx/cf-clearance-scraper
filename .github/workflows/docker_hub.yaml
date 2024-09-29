@@ -51,6 +51,7 @@ jobs:
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           docker build -t zfcsoftware/cf-clearance-scraper:$VERSION .
           docker push zfcsoftware/cf-clearance-scraper:$VERSION
-
+          docker tag zfcsoftware/cf-clearance-scraper:${{ env.VERSION }} zfcsoftware/cf-clearance-scraper:latest
+          docker push zfcsoftware/cf-clearance-scraper:latest
       - name: Logout from Docker Hub
         run: docker logout
