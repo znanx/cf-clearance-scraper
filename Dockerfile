@@ -5,14 +5,12 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
     apt-transport-https \
+    chromium \
+    chromium-driver \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
+ENV CHROME_BIN=/usr/bin/chromium
 
 WORKDIR /app
 
@@ -25,4 +23,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["pm2-runtime", "src/index.js"] 
+CMD ["pm2-runtime", "src/index.js"]
