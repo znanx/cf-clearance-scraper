@@ -173,7 +173,7 @@ No, a new context is started with each request and closed when the job is finish
 You can do this by changing the process.env.browserLimit value. The default is 20
 
 ### How Do I Add Authentication to Api?
-You can add authorisation by changing the process.env.authToken variable. If this variable is added, it returns 401 if the authToken variable in the request body is not equal to the yoken you specify.
+You can add authorisation by changing the process.env.authToken variable. If this variable is added, it returns 401 if the authToken variable in the request body is not equal to the token you specify.
 
 ### How Do I Set The Timeout Time?
 You can give the variable process.env.timeOut a value in milliseconds. The default is 60000.
