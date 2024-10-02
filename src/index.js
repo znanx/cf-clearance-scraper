@@ -15,7 +15,9 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors())
 if (process.env.NODE_ENV !== 'development') {
     let server = app.listen(port, () => { console.log(`Server running on port ${port}`) })
-    server.timeout = (global.timeOut || 60000)
+    try {
+        server.timeout = global.timeOut
+    } catch (e) { }
 }
 if (process.env.SKIP_LAUNCH != 'true') require('./module/createBrowser')
 
