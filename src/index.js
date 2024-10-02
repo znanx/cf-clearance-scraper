@@ -13,9 +13,9 @@ global.timeOut = process.env.timeOut || 60000
 app.use(bodyParser.json({}))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors())
-
-if (process.env.NODE_ENV !== 'development') app.listen(port, () => { console.log(`Server running on port ${port}`) })
-
+let server = null
+if (process.env.NODE_ENV !== 'development') server = app.listen(port, () => { console.log(`Server running on port ${port}`) })
+server.timeout = (global.timeOut || 60000)
 if (process.env.SKIP_LAUNCH != 'true') require('./module/createBrowser')
 
 const getSource = require('./endpoints/getSource')
