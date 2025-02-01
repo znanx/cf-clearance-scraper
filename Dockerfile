@@ -16,7 +16,7 @@ ENV CHROME_BIN=/usr/bin/chromium
 WORKDIR /app
 
 COPY package*.json ./
-
+RUN npm audit fix --force
 RUN npm update
 RUN npm install
 RUN npm i -g pm2
