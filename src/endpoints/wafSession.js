@@ -1,5 +1,4 @@
 async function findAcceptLanguage(page) {
-  await page.setBypassCSP(true);
   return await page.evaluate(async () => {
     const result = await fetch("https://httpbin.org/get")
       .then((res) => res.json())
@@ -39,7 +38,7 @@ function getSource({ url, proxy }) {
           username: proxy.username,
           password: proxy.password,
         });
-
+      let acceptLanguage = await findAcceptLanguage(page);
       await page.setRequestInterception(true);
       page.on("request", async (request) => request.continue());
       page.on("response", async (res) => {
@@ -57,7 +56,7 @@ function getSource({ url, proxy }) {
             delete headers["accept-encoding"];
             delete headers["accept"];
             delete headers["content-length"];
-            headers["accept-language"] = await findAcceptLanguage(page);
+            headers["accept-language"] = acceptLanguage;
             await context.close();
             isResolved = true;
             clearInterval(cl);
