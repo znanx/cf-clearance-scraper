@@ -8,7 +8,9 @@ RUN apt-get update && apt upgrade && apt-get install -y \
     chromium \
     chromium-driver \
     xvfb \
+    libvpx7 \
     libasound2t64 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV CHROME_BIN=/usr/bin/chromium
