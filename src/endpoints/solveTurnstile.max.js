@@ -1,3 +1,4 @@
+const fs = require("fs");
 function solveTurnstileMin({ url, proxy }) {
   return new Promise(async (resolve, reject) => {
     if (!url) return reject("Missing url parameter");
@@ -11,9 +12,6 @@ function solveTurnstileMin({ url, proxy }) {
     if (!context) return reject("Failed to create browser context");
 
     let isResolved = false;
-    const { RequestInterceptionManager } = await import(
-      "puppeteer-intercept-and-modify-requests"
-    );
 
     var cl = setTimeout(async () => {
       if (!isResolved) {
@@ -30,26 +28,25 @@ function solveTurnstileMin({ url, proxy }) {
           username: proxy.username,
           password: proxy.password,
         });
-
-      const client = await page.target().createCDPSession();
-      const interceptManager = new RequestInterceptionManager(client);
-
-      await page.setRequestInterception(true);
-      page.on("request", async (request) => request.continue());
-
-      await interceptManager.intercept({
-        urlPattern: url,
-        resourceType: "Document",
-        modifyResponse({ body }) {
-          return {
-            body: String(body).replace(
-              "</body>",
-              String(require("fs").readFileSync("./src/data/callback.html")) +
-                "</body>"
-            ),
-          };
-        },
+        
+      await page.evaluateOnNewDocument(() => {
+        let token = null;
+        async function waitForToken() {
+          while (!token) {
+            try {
+              token = window.turnstile.getResponse();
+            } catch (e) {}
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+          var c = document.createElement("input");
+          c.type = "hidden";
+          c.name = "cf-response";
+          c.value = token;
+          document.body.appendChild(c);
+        }
+        waitForToken();
       });
+
       await page.goto(url, {
         waitUntil: "domcontentloaded",
       });
@@ -70,6 +67,8 @@ function solveTurnstileMin({ url, proxy }) {
       if (!token || token.length < 10) return reject("Failed to get token");
       return resolve(token);
     } catch (e) {
+      console.log(e);
+
       if (!isResolved) {
         await context.close();
         clearInterval(cl);
