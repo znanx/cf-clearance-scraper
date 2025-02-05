@@ -1,3 +1,6 @@
+> [!WARNING]
+> This repo will no longer receive updates. Thank you to everyone who supported it.
+
 # CF Clearance Scraper
 
 This library was created for testing and training purposes to retrieve the page source of websites, create Cloudflare Turnstile tokens and create Cloudflare WAF sessions.
