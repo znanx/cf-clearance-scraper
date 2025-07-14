@@ -7,10 +7,14 @@ async function createBrowser() {
         global.browser = null
 
         const { browser } = await connect({
-            headless: true,
+            headless: true, // Chromium native headless
             turnstile: true,
-            connectOption: { defaultViewport: null },
-            disableXvfb: true,
+            disableXvfb: true, // Wajib true di Koyeb
+            executablePath: process.env.CHROME_PATH, // Pastikan Chromium dipakai
+            connectOption: {
+                defaultViewport: null,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            }
         })
 
         global.browser = browser
